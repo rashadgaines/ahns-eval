@@ -1,0 +1,68 @@
+\documentclass[11pt,a4paper]{article}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{float}
+
+% Configuration
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan
+}
+
+\title{{{ data.metadata.title }}}
+\author{Evaluation Framework}
+\date{% if data.metadata.timestamp %}{{ data.metadata.timestamp }}{% else %}\today{% endif %}}
+
+\begin{document}
+
+\maketitle
+
+{% if data.metadata.description %}
+\begin{abstract}
+{{ data.metadata.description }}
+\end{abstract}
+{% endif %}
+
+\tableofcontents
+\newpage
+
+{% if metrics %}
+\section{Metrics}
+{{ metrics | safe }}
+{% endif %}
+
+{% if plots %}
+\section{Plots}
+{% for name, plot in plots.items() %}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{{{ plot }}}
+    \caption{{{ name }}}
+    \label{fig:{{ name | lower | replace(' ', '_') }}}
+\end{figure}
+{% endfor %}
+{% endif %}
+
+{% if error_analysis %}
+\section{Error Analysis}
+{{ error_analysis | safe }}
+{% endif %}
+
+{% if model_comparison %}
+\section{Model Comparison}
+{{ model_comparison | safe }}
+{% endif %}
+
+\end{document} 
