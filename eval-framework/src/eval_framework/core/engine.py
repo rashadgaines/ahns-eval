@@ -7,7 +7,7 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Optional, Set, Tuple, Union, Type
 
 import psutil
 from rich.console import Console
@@ -27,8 +27,9 @@ from eval_framework.core.base import (
     BaseModel,
     EvalResult,
 )
-from eval_framework.core.config import EvaluationConfig
+from eval_framework.core.config import EvaluationConfig, ModelConfig, DatasetConfig, MetricConfig
 from eval_framework.core.results import ResultManager
+from eval_framework.core.registry import get_model_class, get_dataset_class, get_evaluator_class
 
 logger = logging.getLogger(__name__)
 console = Console()
@@ -85,32 +86,129 @@ class EvaluationProgress:
 
 
 class EvaluationEngine:
-    """Engine for running model evaluations.
+    """Evaluation engine for running model evaluations.
     
-    This class provides functionality for running evaluations, including
-    single evaluations, batch processing, progress tracking, and error handling.
+    This class provides functionality for:
+    - Loading and validating evaluation configuration
+    - Running evaluations with specified models and datasets
+    - Collecting and aggregating evaluation results
+    - Handling errors and retries
     """
 
-    def __init__(
-        self,
-        config: EvaluationConfig,
-        result_manager: Optional[ResultManager] = None,
-        max_retries: int = 3,
-        retry_delay: float = 1.0,
-    ):
-        """Initialize the evaluation engine.
+    def __init__(self, config: EvaluationConfig):
+        """Initialize evaluation engine.
         
         Args:
             config: Evaluation configuration
-            result_manager: Optional result manager for saving results
-            max_retries: Maximum number of retries for failed evaluations
-            retry_delay: Delay between retries in seconds
         """
         self.config = config
-        self.result_manager = result_manager
-        self.max_retries = max_retries
-        self.retry_delay = retry_delay
+        self._validate_config()
+        self.result_manager = None
+        self.max_retries = 3
+        self.retry_delay = 1.0
         self._executor = ThreadPoolExecutor(max_workers=config.num_workers)
+
+    def _validate_config(self) -> None:
+        """Validate evaluation configuration.
+        
+        Raises:
+            ValueError: If configuration is invalid
+        """
+        if not isinstance(self.config, EvaluationConfig):
+            raise ValueError("Config must be an EvaluationConfig instance")
+        
+        if not self.config.model:
+            raise ValueError("Model configuration is required")
+        
+        if not self.config.dataset:
+            raise ValueError("Dataset configuration is required")
+        
+        if not self.config.metrics:
+            raise ValueError("At least one metric is required")
+
+    async def evaluate(
+        self,
+        model: BaseModel,
+        dataset: BaseDataset,
+        evaluator: BaseEvaluator
+    ) -> Any:
+        """Run evaluation.
+        
+        Args:
+            model: Model to evaluate
+            dataset: Dataset to evaluate on
+            evaluator: Evaluator to use
+            
+        Returns:
+            Evaluation results
+            
+        Raises:
+            ValueError: If evaluation fails
+        """
+        try:
+            # Get total samples
+            items, _ = await dataset.get_all()
+            total_samples = len(items)
+            
+            # Run evaluation
+            results = await evaluator.evaluate(model, dataset)
+            
+            return results
+            
+        except Exception as e:
+            logger.error(f"Evaluation failed: {str(e)}")
+            raise ValueError(f"Evaluation failed: {str(e)}")
+
+    def _get_model_class(self, config: ModelConfig) -> Type[BaseModel]:
+        """Get model class from registry.
+        
+        Args:
+            config: Model configuration
+            
+        Returns:
+            Model class
+            
+        Raises:
+            ValueError: If model class not found
+        """
+        model_class = get_model_class(config.type)
+        if not model_class:
+            raise ValueError(f"Model type '{config.type}' not found in registry")
+        return model_class
+
+    def _get_dataset_class(self, config: DatasetConfig) -> Type[BaseDataset]:
+        """Get dataset class from registry.
+        
+        Args:
+            config: Dataset configuration
+            
+        Returns:
+            Dataset class
+            
+        Raises:
+            ValueError: If dataset class not found
+        """
+        dataset_class = get_dataset_class(config.type)
+        if not dataset_class:
+            raise ValueError(f"Dataset type '{config.type}' not found in registry")
+        return dataset_class
+
+    def _get_evaluator_class(self, config: MetricConfig) -> Type[BaseEvaluator]:
+        """Get evaluator class from registry.
+        
+        Args:
+            config: Metric configuration
+            
+        Returns:
+            Evaluator class
+            
+        Raises:
+            ValueError: If evaluator class not found
+        """
+        evaluator_class = get_evaluator_class(config.type)
+        if not evaluator_class:
+            raise ValueError(f"Evaluator type '{config.type}' not found in registry")
+        return evaluator_class
 
     async def _run_single_evaluation(
         self,
@@ -208,118 +306,6 @@ class EvaluationEngine:
             "memory_total": psutil.virtual_memory().total,
             "memory_available": psutil.virtual_memory().available,
         }
-
-    async def evaluate(
-        self,
-        model: BaseModel,
-        dataset: BaseDataset,
-        evaluator: BaseEvaluator,
-        save_results: bool = True,
-    ) -> EvalResult:
-        """Run a complete evaluation.
-        
-        Args:
-            model: The model to evaluate
-            dataset: The dataset to evaluate on
-            evaluator: The evaluator to use
-            save_results: Whether to save results
-            
-        Returns:
-            The evaluation results
-        """
-        # Initialize progress tracking
-        total_samples = len(await dataset.get_all()[0])
-        progress = EvaluationProgress(
-            total_samples=total_samples,
-            total_batches=(total_samples + self.config.dataset.batch_size - 1)
-            // self.config.dataset.batch_size,
-        )
-
-        # Create progress display
-        with Progress(
-            TextColumn("[bold blue]{task.description}"),
-            BarColumn(),
-            MofNCompleteColumn(),
-            TimeElapsedColumn(),
-            TimeRemainingColumn(),
-            console=console,
-        ) as progress_bar:
-            # Create progress task
-            task = progress_bar.add_task(
-                "[cyan]Evaluating...",
-                total=progress.total_samples,
-            )
-
-            # Process batches
-            batch_results = []
-            for start_idx in range(0, total_samples, self.config.dataset.batch_size):
-                result = await self._process_batch(
-                    model,
-                    dataset,
-                    evaluator,
-                    self.config.dataset.batch_size,
-                    start_idx,
-                    progress,
-                )
-                if result:
-                    batch_results.append(result)
-                
-                # Update progress bar
-                progress_bar.update(
-                    task,
-                    completed=progress.processed_samples,
-                    description=f"[cyan]Evaluating... (Batch {progress.current_batch}/{progress.total_batches})",
-                )
-
-        # Combine batch results
-        final_result = self._combine_results(batch_results)
-
-        # Save results if requested
-        if save_results and self.result_manager:
-            self.result_manager.save_results(
-                result=final_result,
-                model_name=self.config.model.name,
-                dataset_name=self.config.dataset.name,
-                config=self.config.model_dump(),
-                system_info=self._get_system_info(),
-            )
-
-        return final_result
-
-    def _combine_results(self, results: List[EvalResult]) -> EvalResult:
-        """Combine results from multiple batches.
-        
-        Args:
-            results: List of batch results
-            
-        Returns:
-            Combined evaluation results
-        """
-        if not results:
-            raise ValueError("No results to combine")
-
-        # Combine metrics
-        combined_metrics = {}
-        for result in results:
-            for metric_name, value in result.metrics.items():
-                if metric_name not in combined_metrics:
-                    combined_metrics[metric_name] = []
-                combined_metrics[metric_name].append(value)
-
-        # Average metrics
-        final_metrics = {
-            name: sum(values) / len(values)
-            for name, values in combined_metrics.items()
-        }
-
-        # Create final result
-        return EvalResult(
-            model_name=results[0].model_name,
-            dataset_name=results[0].dataset_name,
-            metrics=final_metrics,
-            metadata=results[0].metadata,
-            timestamp=datetime.utcnow().isoformat(),
-        )
 
     async def evaluate_batch(
         self,

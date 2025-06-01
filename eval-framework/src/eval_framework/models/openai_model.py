@@ -1,228 +1,137 @@
 """OpenAI model implementation for the evaluation framework."""
 
+import os
+import time
+from typing import List, Optional, Dict, Any
 import asyncio
-import logging
-from typing import Any, Dict, List, Optional, Union
-from datetime import datetime, timedelta
-
-import openai
 from openai import AsyncOpenAI
-from openai.types.chat import ChatCompletion
-from openai.types.completion import Completion
-from tiktoken import encoding_for_model
-
-from eval_framework.models.base import BaseModel
+from eval_framework.core.base import BaseModel
 from eval_framework.core.registry import register_model
 
-logger = logging.getLogger(__name__)
-
 class RateLimiter:
-    """Rate limiter for OpenAI API requests."""
+    """Rate limiter for API calls."""
     
-    def __init__(self, requests_per_minute: int):
+    def __init__(self, calls_per_minute: int):
         """Initialize rate limiter.
         
         Args:
-            requests_per_minute: Maximum number of requests per minute
+            calls_per_minute: Maximum number of API calls allowed per minute
         """
-        self.requests_per_minute = requests_per_minute
-        self.requests = []
-        self.lock = asyncio.Lock()
-    
+        self.calls_per_minute = calls_per_minute
+        self.calls = []
+        
     async def acquire(self):
-        """Acquire rate limit token."""
-        async with self.lock:
-            now = datetime.now()
-            # Remove requests older than 1 minute
-            self.requests = [req for req in self.requests if now - req < timedelta(minutes=1)]
+        """Acquire permission to make an API call."""
+        now = time.time()
+        
+        # Remove calls older than 1 minute
+        self.calls = [t for t in self.calls if now - t < 60]
+        
+        # If we've hit the limit, wait until we can make another call
+        if len(self.calls) >= self.calls_per_minute:
+            wait_time = 60 - (now - self.calls[0])
+            if wait_time > 0:
+                await asyncio.sleep(wait_time)
+            self.calls = self.calls[1:]
             
-            if len(self.requests) >= self.requests_per_minute:
-                # Wait until oldest request expires
-                wait_time = (self.requests[0] + timedelta(minutes=1) - now).total_seconds()
-                if wait_time > 0:
-                    await asyncio.sleep(wait_time)
-            
-            self.requests.append(now)
+        self.calls.append(now)
 
+@register_model("openai")
 class OpenAIModel(BaseModel[str, str]):
-    """OpenAI model implementation.
-    
-    This class provides an interface to OpenAI's language models with support for:
-    - Different model types (GPT-3.5, GPT-4, etc.)
-    - Rate limiting
-    - Token counting
-    - Error handling and retries
-    - Async operation
-    """
+    """OpenAI model implementation."""
     
     def __init__(
         self,
-        model_name: str,
         api_key: Optional[str] = None,
-        organization: Optional[str] = None,
-        max_retries: int = 3,
-        retry_delay: float = 1.0,
-        requests_per_minute: int = 60,
+        batch_size: int = 1,
+        max_tokens: int = 1024,
         temperature: float = 0.7,
-        max_tokens: Optional[int] = None,
-        **kwargs: Any
+        top_p: float = 0.9,
+        model_type: str = "chat",
+        system_prompt: str = "You are a helpful AI assistant.",
+        **kwargs
     ):
-        """Initialize OpenAI model.
+        """Initialize the OpenAI model.
         
         Args:
-            model_name: Name of the OpenAI model to use
-            api_key: OpenAI API key (defaults to OPENAI_API_KEY env var)
-            organization: OpenAI organization ID (defaults to OPENAI_ORGANIZATION env var)
-            max_retries: Maximum number of retries for failed requests
-            retry_delay: Delay between retries in seconds
-            requests_per_minute: Maximum requests per minute for rate limiting
-            temperature: Sampling temperature (0-2)
-            max_tokens: Maximum tokens to generate
-            **kwargs: Additional model parameters
+            api_key: API key for OpenAI. If not provided, will try to get from OPENAI_API_KEY env var
+            batch_size: Number of prompts to process in parallel
+            max_tokens: Maximum number of tokens to generate
+            temperature: Sampling temperature (0-1)
+            top_p: Nucleus sampling parameter (0-1)
+            model_type: Type of model to use (chat or completion)
+            system_prompt: System prompt to use for chat models
+            **kwargs: Additional model-specific parameters
         """
-        self.model_name = model_name
-        self.client = AsyncOpenAI(
-            api_key=api_key,
-            organization=organization
-        )
-        self.max_retries = max_retries
-        self.retry_delay = retry_delay
-        self.rate_limiter = RateLimiter(requests_per_minute)
-        self.temperature = temperature
+        super().__init__()
+        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
+        if not self.api_key:
+            raise ValueError("OpenAI API key must be provided or set in OPENAI_API_KEY environment variable")
+            
+        self.batch_size = batch_size
         self.max_tokens = max_tokens
-        self.kwargs = kwargs
+        self.temperature = temperature
+        self.top_p = top_p
+        self.model_type = model_type
+        self.system_prompt = system_prompt
         
-        # Initialize tokenizer
+        # Initialize OpenAI client
+        self.client = AsyncOpenAI(api_key=self.api_key)
+        
+        # Initialize rate limiter (adjust based on your API tier)
+        self.rate_limiter = RateLimiter(calls_per_minute=60)
+        
+    async def predict(self, inputs: str) -> str:
+        """Generate a response for a single prompt.
+        
+        Args:
+            inputs: The input prompt text
+            
+        Returns:
+            The generated response text
+        """
+        await self.rate_limiter.acquire()
+        
         try:
-            self.tokenizer = encoding_for_model(model_name)
-        except KeyError:
-            # Fallback to cl100k_base for newer models
-            self.tokenizer = encoding_for_model("cl100k_base")
-    
-    def get_model_info(self) -> Dict[str, Any]:
-        """Get model information.
-        
-        Returns:
-            Dictionary containing model information
-        """
-        return {
-            "name": self.model_name,
-            "type": "openai",
-            "parameters": {
-                "temperature": self.temperature,
-                "max_tokens": self.max_tokens,
-                **self.kwargs
-            }
-        }
-    
-    def validate_input(self, input_data: str) -> Optional[str]:
-        """Validate input data.
-        
-        Args:
-            input_data: Input text to validate
-            
-        Returns:
-            None if valid, error message if invalid
-        """
-        if not isinstance(input_data, str):
-            return "Input must be a string"
-        if not input_data.strip():
-            return "Input cannot be empty"
-        return None
-    
-    def count_tokens(self, text: str) -> int:
-        """Count number of tokens in text.
-        
-        Args:
-            text: Text to count tokens for
-            
-        Returns:
-            Number of tokens
-        """
-        return len(self.tokenizer.encode(text))
-    
-    async def generate(self, input_data: str, **kwargs) -> str:
-        """Generate text from input.
-        
-        Args:
-            input_data: Input text
-            **kwargs: Additional generation parameters
-            
-        Returns:
-            Generated text
-            
-        Raises:
-            ValueError: If input is invalid
-            openai.APIError: If API request fails
-        """
-        # Validate input
-        if error := self.validate_input(input_data):
-            raise ValueError(error)
-        
-        # Merge parameters
-        params = {
-            "model": self.model_name,
-            "temperature": self.temperature,
-            "max_tokens": self.max_tokens,
-            **self.kwargs,
-            **kwargs
-        }
-        
-        # Add messages for chat models
-        if self.model_name.startswith(("gpt-3.5", "gpt-4")):
-            params["messages"] = [{"role": "user", "content": input_data}]
-        
-        # Retry loop
-        for attempt in range(self.max_retries):
-            try:
-                # Acquire rate limit token
-                await self.rate_limiter.acquire()
-                
-                # Make API request
-                if self.model_name.startswith(("gpt-3.5", "gpt-4")):
-                    response = await self.client.chat.completions.create(**params)
-                    return response.choices[0].message.content
-                else:
-                    response = await self.client.completions.create(
-                        prompt=input_data,
-                        **params
-                    )
-                    return response.choices[0].text
-                
-            except Exception as e:
-                if attempt == self.max_retries - 1:
-                    raise
-                logger.warning(
-                    f"Request attempt {attempt + 1} failed: {str(e)}. "
-                    f"Retrying in {self.retry_delay} seconds..."
+            if self.model_type == "chat":
+                response = await self.client.chat.completions.create(
+                    model=self.name,
+                    messages=[
+                        {"role": "system", "content": self.system_prompt},
+                        {"role": "user", "content": inputs}
+                    ],
+                    max_tokens=self.max_tokens,
+                    temperature=self.temperature,
+                    top_p=self.top_p
                 )
-                await asyncio.sleep(self.retry_delay)
-    
-    async def batch_generate(self, batch_inputs: List[str], **kwargs) -> List[str]:
-        """Generate text for a batch of inputs.
+                return response.choices[0].message.content
+            else:
+                response = await self.client.completions.create(
+                    model=self.name,
+                    prompt=inputs,
+                    max_tokens=self.max_tokens,
+                    temperature=self.temperature,
+                    top_p=self.top_p
+                )
+                return response.choices[0].text
+        except Exception as e:
+            return f"Error generating response: {str(e)}"
+        
+    async def batch_predict(self, inputs: List[str]) -> List[str]:
+        """Generate responses for multiple prompts.
         
         Args:
-            batch_inputs: List of input texts
-            **kwargs: Additional generation parameters
+            inputs: List of input prompt texts
             
         Returns:
-            List of generated texts
-            
-        Raises:
-            ValueError: If any input is invalid
-            openai.APIError: If API request fails
+            List of generated response texts
         """
-        # Validate inputs
-        for input_data in batch_inputs:
-            if error := self.validate_input(input_data):
-                raise ValueError(f"Invalid input: {error}")
-        
-        # Process inputs concurrently with rate limiting
-        async def process_input(input_data: str) -> str:
-            return await self.generate(input_data, **kwargs)
-        
-        tasks = [process_input(input_data) for input_data in batch_inputs]
-        return await asyncio.gather(*tasks)
-
-# Register the model
-register_model("openai")(OpenAIModel) 
+        # Process prompts in batches
+        responses = []
+        for i in range(0, len(inputs), self.batch_size):
+            batch = inputs[i:i + self.batch_size]
+            batch_responses = await asyncio.gather(
+                *[self.predict(prompt) for prompt in batch]
+            )
+            responses.extend(batch_responses)
+        return responses 

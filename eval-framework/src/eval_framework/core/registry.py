@@ -237,4 +237,65 @@ def register_dataset(name: Optional[str] = None) -> Type[BaseDataset]:
         dataset_registry.register(dataset_class, name=name)
         return dataset_class
 
-    return decorator 
+    return decorator
+
+
+# Helper functions for getting registered classes
+def get_model_class(name: str) -> Optional[Type[BaseModel]]:
+    """Get a registered model class.
+    
+    Args:
+        name: Name of the model to retrieve
+        
+    Returns:
+        The registered model class or None if not found
+    """
+    try:
+        return model_registry.get(name)
+    except KeyError:
+        return None
+
+
+def get_dataset_class(name: str) -> Optional[Type[BaseDataset]]:
+    """Get a registered dataset class.
+    
+    Args:
+        name: Name of the dataset to retrieve
+        
+    Returns:
+        The registered dataset class or None if not found
+    """
+    try:
+        return dataset_registry.get(name)
+    except KeyError:
+        return None
+
+
+def get_evaluator_class(name: str) -> Optional[Type[BaseEvaluator]]:
+    """Get a registered evaluator class.
+    
+    Args:
+        name: Name of the evaluator to retrieve
+        
+    Returns:
+        The registered evaluator class or None if not found
+    """
+    try:
+        return evaluator_registry.get(name)
+    except KeyError:
+        return None
+
+
+def get_metric_class(name: str) -> Optional[Type[BaseMetric]]:
+    """Get a registered metric class.
+    
+    Args:
+        name: Name of the metric to retrieve
+        
+    Returns:
+        The registered metric class or None if not found
+    """
+    try:
+        return metric_registry.get(name)
+    except KeyError:
+        return None 

@@ -2,7 +2,7 @@
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Generic, Iterator, List, Optional, TypeVar, Union
+from typing import Any, Dict, Generic, Iterator, List, Optional, TypeVar, Union, Tuple
 import random
 from pathlib import Path
 
@@ -84,6 +84,16 @@ class BaseDataset(Generic[T], ABC):
             raise ValueError("Dataset is empty")
         
         return True
+    
+    async def get_all(self) -> Tuple[List[T], List[Any]]:
+        """Get all items and labels from the dataset.
+        
+        Returns:
+            Tuple of (items, labels) where items are the input data and labels are the target data
+        """
+        if self._data is None:
+            raise ValueError("Dataset not loaded")
+        return self._data, []  # Return empty labels list by default
     
     def sample(self, size: Optional[int] = None, fraction: Optional[float] = None) -> List[T]:
         """Sample a subset of the dataset.

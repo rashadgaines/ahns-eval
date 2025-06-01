@@ -171,6 +171,10 @@ class EvalResult(PydanticBaseModel):
     metrics: Dict[str, Any] = Field(
         ..., description="Dictionary of metric names to their computed values"
     )
+    predictions: List[Any] = Field(
+        default_factory=list,
+        description="List of model predictions"
+    )
     metadata: Dict[str, Any] = Field(
         default_factory=dict,
         description="Additional metadata about the evaluation run",
