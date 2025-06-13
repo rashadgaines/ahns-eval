@@ -60,16 +60,30 @@ Images were generated using X.AI's Grok model via the OpenAI Python client. Prom
 ### Example Images
 
 #### High Harmony, High Novelty (AHNS > 0.8)
-![High Harmony and Novelty Example](examples/images/high_harmony_novelty.png)
-*Example of an image with strong color harmony and unique composition*
+![High Harmony and Novelty Example](results/images/a serene landscape with mountains and a lake at sunset, using complementary colors_0.png)
+*Example showing strong color harmony and unique composition*
 
 #### Moderate Harmony, High Novelty (AHNS ≈ 0.6)
-![Moderate Harmony Example](examples/images/moderate_harmony.png)
+![Moderate Harmony Example](results/images/a minimalist still life with subtle textures and balanced composition_0.png)
 *Example showing balanced composition with innovative elements*
 
 #### Low Harmony, High Novelty (AHNS < 0.4)
-![Low Harmony Example](examples/images/low_harmony.png)
+![Low Harmony Example](results/images/a surreal dreamscape with unexpected color combinations_0.png)
 *Example demonstrating creative but less harmonious composition*
+
+### Visualizations
+
+#### Score Distributions
+![Score Distributions](visualization/plots/score_distributions.png)
+*Distribution of AHNS scores (μ = 0.648 ± 0.096), Harmony scores (μ = 0.336 ± 0.192), and Novelty scores (μ = 0.960 ± 0.000) across different image categories.*
+
+#### Score Correlations
+![Score Correlations](visualization/plots/score_correlations.png)
+*Correlation analysis between harmony and novelty scores showing the relationship between aesthetic components.*
+
+#### Prompt Analysis
+![Prompt Comparison](visualization/plots/prompt_comparison.png)
+*Comparative analysis of prompt effectiveness across different categories, showing the impact of prompt design on AHNS scores.*
 
 ## Discussion
 
