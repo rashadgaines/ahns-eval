@@ -56,16 +56,20 @@ Images were generated using X.AI's Grok model via the OpenAI Python client. Prom
 - **Harmony Score**: 0.336 ± 0.089
 - **Novelty Score**: 0.960 ± 0.031
 
-### Visualizations
 
-#### Score Distributions
-![Score Distributions](visualization/plots/score_distributions.png)
+### Example Images
 
-#### Score Correlations
-![Score Correlations](visualization/plots/score_correlations.png)
+#### High Harmony, High Novelty (AHNS > 0.8)
+![High Harmony and Novelty Example](examples/images/high_harmony_novelty.png)
+*Example of an image with strong color harmony and unique composition*
 
-#### Prompt Analysis
-![Prompt Comparison](visualization/plots/prompt_comparison.png)
+#### Moderate Harmony, High Novelty (AHNS ≈ 0.6)
+![Moderate Harmony Example](examples/images/moderate_harmony.png)
+*Example showing balanced composition with innovative elements*
+
+#### Low Harmony, High Novelty (AHNS < 0.4)
+![Low Harmony Example](examples/images/low_harmony.png)
+*Example demonstrating creative but less harmonious composition*
 
 ## Discussion
 
