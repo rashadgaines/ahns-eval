@@ -57,15 +57,15 @@ Images were generated using X.AI's Grok model via the OpenAI Python client. Prom
 - **Novelty Score**: 0.960 ± 0.031
 
 #### Score Distributions
-![Score Distributions](visualization/plots/score_distributions.png)
+![Score Distributions](visualization/plots/score-distributions.png)
 *Distribution of AHNS scores (μ = 0.648 ± 0.096), Harmony scores (μ = 0.336 ± 0.192), and Novelty scores (μ = 0.960 ± 0.000) across different image categories.*
 
 #### Score Correlations
-![Score Correlations](visualization/plots/score_correlations.png)
+![Score Correlations](visualization/plots/score-correlations.png)
 *Correlation analysis between harmony and novelty scores showing the relationship between aesthetic components.*
 
 #### Prompt Analysis
-![Prompt Comparison](visualization/plots/prompt_comparison.png)
+![Prompt Comparison](visualization/plots/prompt-comparison.png)
 *Comparative analysis of prompt effectiveness across different categories, showing the impact of prompt design on AHNS scores.*
 
 ## Discussion
