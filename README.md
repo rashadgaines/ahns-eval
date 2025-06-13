@@ -74,7 +74,3 @@ If you use this research in your work, please cite:
   url = {https://github.com/rashadgaines/ahns-eval}
 }
 ```
-
-## Acknowledgments
-
-We thank the open-source community for their contributions to this research. 
