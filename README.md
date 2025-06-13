@@ -19,13 +19,13 @@ Images were generated using X.AI's Grok model via the OpenAI Python client. Prom
 ### Evaluation Metrics
 
 1. **AHNS Score**: Combines harmony and novelty into a single metric.
-   \[ AHNS = \frac{1}{N}\sum_{i=1}^{N} (w_h \cdot h_i + w_n \cdot n_i) \]
+   $$ AHNS = \frac{1}{N}\sum_{i=1}^{N} (w_h \cdot h_i + w_n \cdot n_i) $$
 
 2. **Harmony Score**: Measures color harmony and composition.
-   \[ H = \frac{1}{M}\sum_{i=1}^{M} \min_{s \in S} |h_i - s| \]
+   $$ H = \frac{1}{M}\sum_{i=1}^{M} \min_{s \in S} |h_i - s| $$
 
 3. **Novelty Score**: Quantifies uniqueness using embedding distances.
-   \[ N = 1 - \frac{1}{K}\sum_{i=1}^{K} \cos(\theta_i) \]
+   $$ N = 1 - \frac{1}{K}\sum_{i=1}^{K} \cos(\theta_i) $$
 
 ## Results
 
@@ -69,8 +69,8 @@ If you use this research in your work, please cite:
 ```
 @software{ahns_eval,
   author = {Rashad Gaines},
-  title = {AHNS Eval},
-  year = {2024},
+  title = {AHNS Eval: Measuring Image Generation Models on Aesthetic Harmony and Novelty.},
+  year = {2025},
   url = {https://github.com/rashadgaines/ahns-eval}
 }
 ```
