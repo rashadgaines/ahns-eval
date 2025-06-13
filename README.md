@@ -68,8 +68,8 @@ Future research could explore the impact of different prompts and styles on AHNS
 If you use this research in your work, please cite:
 ```
 @software{ahns_eval,
-  author = {Your Name},
-  title = {AHNS Evaluation: A Research Study},
+  author = {Rashad Gaines},
+  title = {AHNS Eval},
   year = {2024},
   url = {https://github.com/rashadgaines/ahns-eval}
 }
