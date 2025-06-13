@@ -20,9 +20,7 @@ Images were generated using X.AI's Grok model via the OpenAI Python client. Prom
 
 1. **AHNS Score**: Combines harmony and novelty into a single metric.
 
-   $$
-   AHNS = \frac{1}{N}\sum_{i=1}^{N} (w_h \cdot h_i + w_n \cdot n_i)
-   $$
+   $AHNS = \frac{1}{N}\sum_{i=1}^{N} (w_h \cdot h_i + w_n \cdot n_i)$
 
 2. **Harmony Score**: Measures color harmony and composition.
 
