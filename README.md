@@ -58,10 +58,14 @@ Images were generated using X.AI's Grok model via the OpenAI Python client. Prom
 
 ### Visualizations
 
-- **Score Distributions**: [Score Distributions](visualization/plots/score_distributions.png)
-- **Score Correlations**: [Score Correlations](visualization/plots/score_correlations.png)
-- **Prompt Analysis**: [Prompt Comparison](visualization/plots/prompt_comparison.png)
-- **Interactive Analysis**: [3D Score Distribution](visualization/plots/interactive_3d_plot.html), [Comprehensive Dashboard](visualization/plots/interactive_dashboard.html)
+#### Score Distributions
+![Score Distributions](visualization/plots/score_distributions.png)
+
+#### Score Correlations
+![Score Correlations](visualization/plots/score_correlations.png)
+
+#### Prompt Analysis
+![Prompt Comparison](visualization/plots/prompt_comparison.png)
 
 ## Discussion
 
