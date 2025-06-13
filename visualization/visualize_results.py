@@ -73,7 +73,7 @@ def create_score_distribution_plot(df: pd.DataFrame, output_dir: str):
                    bbox=dict(facecolor='white', alpha=0.8, edgecolor='none'))
     
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, "score_distributions.png"), dpi=300, bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, "score--distributions.png"), dpi=300, bbox_inches='tight')
     plt.close()
 
 def main():

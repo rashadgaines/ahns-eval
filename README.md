@@ -54,7 +54,7 @@ Images were generated using X.AI's Grok model via the OpenAI Python client. Prom
 - **Novelty Score**: 0.960 ± 0.000
 
 #### Score Distribution
-![Score Distribution](visualization/plots/score--distributions.png)
+![Score Distribution](visualization/plots/score_distributions.png)
 *Distribution of image quality scores showing Overall Quality (AHNS), Aesthetic Harmony, and Creative Novelty metrics. Each plot includes mean values (dashed lines) and standard deviations.*
 
 
