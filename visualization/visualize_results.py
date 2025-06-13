@@ -25,55 +25,93 @@ def load_latest_results(results_dir: str = "results") -> pd.DataFrame:
 
 def create_score_distribution_plot(df: pd.DataFrame, output_dir: str):
     """Create distribution plots for AHNS, Harmony, and Novelty scores."""
-    plt.figure(figsize=(15, 5))
+    # Set style
+    plt.style.use('seaborn-v0_8')
     
-    # Create subplots
+    # Create subplots with proper spacing
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 5))
+    fig.suptitle('Score Distributions', fontsize=16, y=1.05)
     
-    # Plot distributions
-    sns.histplot(data=df, x="ahns_score", ax=ax1, kde=True)
-    sns.histplot(data=df, x="harmony_score", ax=ax2, kde=True)
-    sns.histplot(data=df, x="novelty_score", ax=ax3, kde=True)
-    
-    # Set titles and labels
-    ax1.set_title("AHNS Score Distribution")
-    ax2.set_title("Harmony Score Distribution")
-    ax3.set_title("Novelty Score Distribution")
+    # Plot distributions with consistent styling
+    for ax, score, title in zip([ax1, ax2, ax3], 
+                              ['ahns_score', 'harmony_score', 'novelty_score'],
+                              ['AHNS Score', 'Harmony Score', 'Novelty Score']):
+        sns.histplot(data=df, x=score, ax=ax, kde=True, color='skyblue', edgecolor='black')
+        ax.set_title(title, pad=10)
+        ax.set_xlabel('Score')
+        ax.set_ylabel('Count')
+        ax.grid(True, alpha=0.3)
+        ax.set_xlim(0, 1)  # All scores are between 0 and 1
     
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, "score_distributions.png"))
+    plt.savefig(os.path.join(output_dir, "score_distributions.png"), dpi=300, bbox_inches='tight')
     plt.close()
 
 def create_score_correlation_plot(df: pd.DataFrame, output_dir: str):
     """Create correlation plot between different scores."""
-    # Select score columns
+    # Set style
+    plt.style.use('seaborn-v0_8')
+    
+    # Select score columns and calculate correlation
     score_cols = ["ahns_score", "harmony_score", "novelty_score"]
     corr_matrix = df[score_cols].corr()
     
-    plt.figure(figsize=(8, 6))
-    sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", vmin=-1, vmax=1)
-    plt.title("Score Correlations")
+    # Create figure with proper size
+    plt.figure(figsize=(10, 8))
+    
+    # Create heatmap with improved styling
+    sns.heatmap(corr_matrix, 
+                annot=True, 
+                cmap="coolwarm", 
+                vmin=-1, 
+                vmax=1,
+                fmt='.2f',  # Format correlation values to 2 decimal places
+                square=True,
+                cbar_kws={'label': 'Correlation Coefficient'})
+    
+    plt.title('Score Correlations', pad=20)
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, "score_correlations.png"))
+    plt.savefig(os.path.join(output_dir, "score_correlations.png"), dpi=300, bbox_inches='tight')
     plt.close()
 
 def create_prompt_comparison_plot(df: pd.DataFrame, output_dir: str):
     """Create box plots comparing scores across different prompts."""
-    plt.figure(figsize=(12, 6))
+    # Set style
+    plt.style.use('seaborn-v0_8')
     
-    # Melt the dataframe to get it in the right format for seaborn
+    # Create figure with proper size
+    plt.figure(figsize=(12, 8))
+    
+    # Melt the dataframe
     melted_df = pd.melt(df, 
                         id_vars=["prompt"],
                         value_vars=["ahns_score", "harmony_score", "novelty_score"],
                         var_name="score_type",
                         value_name="score")
     
-    # Create box plot
-    sns.boxplot(data=melted_df, x="prompt", y="score", hue="score_type")
-    plt.xticks(rotation=45, ha="right")
-    plt.title("Score Distribution by Prompt")
+    # Create box plot with improved styling
+    ax = sns.boxplot(data=melted_df, 
+                    x="prompt", 
+                    y="score", 
+                    hue="score_type",
+                    palette="Set2")
+    
+    # Improve readability
+    plt.xticks(rotation=45, ha='right')
+    plt.title('Score Distribution by Prompt', pad=20)
+    plt.xlabel('Prompt')
+    plt.ylabel('Score')
+    
+    # Improve legend
+    plt.legend(title='Score Type', 
+              bbox_to_anchor=(1.05, 1), 
+              loc='upper left')
+    
+    # Add grid
+    plt.grid(True, alpha=0.3)
+    
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, "prompt_comparison.png"))
+    plt.savefig(os.path.join(output_dir, "prompt_comparison.png"), dpi=300, bbox_inches='tight')
     plt.close()
 
 def create_interactive_3d_plot(df: pd.DataFrame, output_dir: str):
