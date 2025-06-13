@@ -26,15 +26,11 @@ Images were generated using X.AI's Grok model via the OpenAI Python client. Prom
 
 2. **Harmony Score**: Measures color harmony and composition.
 
-   $$
-   H = \frac{1}{M}\sum_{i=1}^{M} \min_{s \in S} |h_i - s|
-   $$
+   $H = \frac{1}{M}\sum_{i=1}^{M} \min_{s \in S} |h_i - s|$
 
 3. **Novelty Score**: Quantifies uniqueness using embedding distances.
 
-   $$
-   N = 1 - \frac{1}{K}\sum_{i=1}^{K} \cos(\theta_i)
-   $$
+   $N = 1 - \frac{1}{K}\sum_{i=1}^{K} \cos(\theta_i)$
 
 ## Results
 
