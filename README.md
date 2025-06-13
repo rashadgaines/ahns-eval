@@ -1,4 +1,6 @@
-# Aesthetic Harmony and Novelty Score (AHNS) Evaluation: A Research Study
+**NOTE: These views are solely my own and do not reflect the opinions or influence of my employer, xAI..**
+
+# Aesthetic Harmony and Novelty Score (AHNS) Evaluation
 
 ## Abstract
 
