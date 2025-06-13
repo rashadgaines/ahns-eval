@@ -20,7 +20,10 @@ wheels/
 .installed.cfg
 *.egg
 
-# Virtual Environment
+# Environment
+.env
+.venv
+env/
 venv/
 ENV/
 
@@ -30,8 +33,9 @@ ENV/
 *.swp
 *.swo
 
-# Environment variables
-.env
+# Project specific
+ahns.egg-info/
+visualization/plots/*.html
 
 # Results and generated files
 results/
@@ -42,6 +46,4 @@ visualization/plots/
 
 # OS
 .DS_Store
-Thumbs.db
-
-ahns.egg-info/ 
+Thumbs.db 
