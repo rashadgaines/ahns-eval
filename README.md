@@ -56,23 +56,6 @@ Images were generated using X.AI's Grok model via the OpenAI Python client. Prom
 - **Harmony Score**: 0.336 ± 0.089
 - **Novelty Score**: 0.960 ± 0.031
 
-
-### Example Images
-
-#### High Harmony, High Novelty (AHNS > 0.8)
-![High Harmony and Novelty Example](results/images/a serene landscape with mountains and a lake at sunset, using complementary colors_0.png)
-*Example showing strong color harmony and unique composition*
-
-#### Moderate Harmony, High Novelty (AHNS ≈ 0.6)
-![Moderate Harmony Example](results/images/a minimalist still life with subtle textures and balanced composition_0.png)
-*Example showing balanced composition with innovative elements*
-
-#### Low Harmony, High Novelty (AHNS < 0.4)
-![Low Harmony Example](results/images/a surreal dreamscape with unexpected color combinations_0.png)
-*Example demonstrating creative but less harmonious composition*
-
-### Visualizations
-
 #### Score Distributions
 ![Score Distributions](visualization/plots/score_distributions.png)
 *Distribution of AHNS scores (μ = 0.648 ± 0.096), Harmony scores (μ = 0.336 ± 0.192), and Novelty scores (μ = 0.960 ± 0.000) across different image categories.*
