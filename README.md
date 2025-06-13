@@ -71,3 +71,28 @@ If you use this research in your work, please cite:
   url = {https://github.com/rashadgaines/ahns-eval}
 }
 ```
+
+## Quick Setup
+
+```bash
+# Clone and setup
+git clone https://github.com/rashadgaines/ahns-eval.git
+cd ahns-eval
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# Install and configure
+pip install -r requirements.txt
+echo "XAI_API_KEY=your_key_here" > .env
+
+# Generate and evaluate images
+python examples/generate_and_evaluate.py \
+    --prompts "serene landscape" "abstract pattern" "surreal dreamscape" \
+    --num-images 10 \
+    --output-dir results \
+    --save-images \
+    --save-embeddings
+
+# Visualize results
+python visualization/visualize_results.py
+```
