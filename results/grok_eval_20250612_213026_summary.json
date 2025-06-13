@@ -1,0 +1,38 @@
+{
+  "mean_ahns": 0.6480746577641836,
+  "std_ahns": 0.09616627065923228,
+  "mean_harmony": 0.33614931552836713,
+  "std_harmony": 0.19233254131846453,
+  "mean_novelty": 0.9600000000000001,
+  "std_novelty": 0.0,
+  "component_stats": {
+    "index": {
+      "mean": 0.5,
+      "std": 0.5345224838248488
+    },
+    "color_harmony": {
+      "mean": 0.4118145939667553,
+      "std": 0.27675336809654505
+    },
+    "composition": {
+      "mean": 0.04579220555549292,
+      "std": 0.6901699348644846
+    },
+    "texture": {
+      "mean": 0.5256193875833903,
+      "std": 0.11201970627776357
+    },
+    "train_novelty": {
+      "mean": 1.0,
+      "std": 0.0
+    },
+    "prior_novelty": {
+      "mean": 1.0,
+      "std": 0.0
+    },
+    "domain_plausibility": {
+      "mean": 0.8,
+      "std": 0.0
+    }
+  }
+}

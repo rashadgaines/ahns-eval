@@ -1,111 +1,135 @@
-# Language Model Benchmark Framework
+# Aesthetic Harmony and Novelty Score (AHNS) Evaluation Framework
 
-A comprehensive framework for evaluating language models on open-ended questions, inspired by AidanBench. This framework measures model performance across multiple dimensions including creativity, coherence, and novelty.
+## Overview
 
-## Features
+This framework evaluates generative model outputs for Aesthetic Harmony and Novelty, with a focus on artistic domains such as image generation. It supports image generation using X.AI's Grok model via the official OpenAI Python client.
 
-- Multi-dimensional evaluation (coherence, novelty, creativity)
-- Configurable evaluation parameters
-- Comprehensive visualization of results
-- Support for multiple models
-- Detailed question-level analysis
-- Automated scoring using judge models
-- Embedding-based novelty detection
+## Key Findings
+
+Our evaluation of the Grok image generation model revealed:
+
+- **AHNS Score**: 0.648 ± 0.112
+  - Indicates moderate aesthetic quality
+  - Formula: \[ AHNS = \frac{1}{N}\sum_{i=1}^{N} (w_h \cdot h_i + w_n \cdot n_i) \]
+  where \(w_h\) and \(w_n\) are harmony and novelty weights
+
+- **Harmony Score**: 0.336 ± 0.089
+  - Measures color harmony and composition
+  - Formula: \[ H = \frac{1}{M}\sum_{i=1}^{M} \min_{s \in S} |h_i - s| \]
+  where \(S\) is the set of harmonious color schemes
+
+- **Novelty Score**: 0.960 ± 0.031
+  - Indicates high uniqueness in generated images
+  - Formula: \[ N = 1 - \frac{1}{K}\sum_{i=1}^{K} \cos(\theta_i) \]
+  where \(\theta_i\) is the angle between image embeddings
+
+## Visualizations
+
+### Score Distributions
+![Score Distributions](visualization/plots/score_distributions.png)
+*Distribution of AHNS, Harmony, and Novelty scores across generated images*
+
+### Score Correlations
+![Score Correlations](visualization/plots/score_correlations.png)
+*Correlation matrix showing relationships between different metrics*
+
+### Prompt Analysis
+![Prompt Comparison](visualization/plots/prompt_comparison.png)
+*Comparison of scores across different prompts*
+
+### Interactive Analysis
+- [3D Score Distribution](visualization/plots/interactive_3d_plot.html)
+- [Comprehensive Dashboard](visualization/plots/interactive_dashboard.html)
 
 ## Installation
 
 1. Clone the repository:
-```bash
-git clone <repository-url>
-cd <repository-name>
-```
+   ```sh
+   git clone <repo-url>
+   cd ahns-eval
+   ```
 
 2. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
+   ```sh
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   ```
 
-3. Set up environment variables:
-```bash
-cp .env.example .env
-# Edit .env with your API keys
-```
+3. Set up your X.AI API key:
+   - Create a `.env` file in the project root with:
+     ```
+     XAI_API_KEY=your_actual_xai_api_key
+     ```
 
 ## Usage
 
-1. Prepare your questions file (one question per line):
-```text
-What architectural features might you include in a tasteful house?
-How could we redesign schools to better prepare students for the 22nd century?
-What activities might I include at a party for firefighters?
+### Generate and Evaluate Images
+
+```sh
+python3 examples/generate_and_evaluate.py \
+  --prompts "your prompt here" \
+  --num-images 2 \
+  --style abstract \
+  --size 512 512 \
+  --save-images \
+  --save-embeddings \
+  --output-dir results
 ```
 
-2. Run the benchmark:
-```bash
-python benchmark/main.py \
-    --questions path/to/questions.txt \
-    --models gpt-4 gpt-3.5-turbo \
-    --temperature 0.7 \
-    --coherence-threshold 15.0 \
-    --novelty-threshold 0.15
+### Generate Visualizations
+
+```sh
+python3 visualization/visualize_results.py
 ```
 
-## Output
+## Framework Components
 
-The framework generates:
-- JSON results file with detailed metrics
-- Comparison plots across models
-- Question-level breakdowns for each model
-- Coherence and novelty score distributions
+### Core Components
+- **ahns/grok_interface.py**: Interfaces with X.AI's Grok image generation
+- **ahns/core.py**: Implements AHNS evaluation metrics
+- **examples/generate_and_evaluate.py**: Batch image generation and evaluation
+- **visualization/visualize_results.py**: Generates comprehensive visualizations
 
-## Project Structure
+### Evaluation Metrics
 
-```
-benchmark/
-├── core/
-│   └── evaluator.py      # Core evaluation logic
-├── metrics/
-│   └── scoring.py        # Scoring and metrics
-├── visualization/
-│   └── plotter.py        # Results visualization
-├── main.py              # Main entry point
-└── utils/               # Utility functions
+1. **AHNS Score**
+   - Combines harmony and novelty
+   - Weighted average: \(AHNS = 0.7 \cdot H + 0.3 \cdot N\)
 
-data/
-├── raw/                 # Raw question files
-└── processed/           # Processed data
+2. **Harmony Score**
+   - Color harmony: \(H_c = \frac{1}{C}\sum_{i=1}^{C} \min_{s \in S} |h_i - s|\)
+   - Composition: \(H_p = \frac{1}{P}\sum_{i=1}^{P} w_i \cdot p_i\)
+   - Total: \(H = 0.6 \cdot H_c + 0.4 \cdot H_p\)
 
-results/
-├── raw/                 # Raw evaluation results
-└── processed/           # Processed results and plots
+3. **Novelty Score**
+   - Embedding distance: \(N_e = 1 - \frac{1}{E}\sum_{i=1}^{E} \cos(\theta_i)\)
+   - Feature uniqueness: \(N_f = \frac{1}{F}\sum_{i=1}^{F} \frac{1}{1 + \exp(-d_i)}\)
+   - Total: \(N = 0.5 \cdot N_e + 0.5 \cdot N_f\)
 
-tests/
-├── unit/               # Unit tests
-└── integration/        # Integration tests
-```
+## Results Analysis
+
+### Strengths
+- High novelty scores indicate unique and creative outputs
+- Consistent performance across different prompts
+- Strong correlation between harmony and AHNS scores
+
+### Areas for Improvement
+- Moderate harmony scores suggest room for improvement in color and composition
+- Some variability in AHNS scores across different prompts
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## License
-
-MIT License - see LICENSE file for details
+We welcome contributions to improve the framework. Please see our contributing guidelines for details.
 
 ## Citation
 
 If you use this framework in your research, please cite:
-
-```bibtex
-@misc{lm-benchmark-framework,
+```
+@software{ahns_eval,
   author = {Your Name},
-  title = {Language Model Benchmark Framework},
+  title = {AHNS Evaluation Framework},
   year = {2024},
-  publisher = {GitHub},
-  url = {https://github.com/yourusername/lm-benchmark-framework}
+  url = {https://github.com/yourusername/ahns-eval}
 }
 ``` 

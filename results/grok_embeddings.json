@@ -1,0 +1,9 @@
+{
+  "num_images": 8,
+  "num_prompts": 4,
+  "style": "abstract",
+  "size": [
+    512,
+    512
+  ]
+}
