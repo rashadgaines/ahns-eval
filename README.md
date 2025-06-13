@@ -3,7 +3,7 @@
 # AHNS Eval: Measuring Grok 2 Image Generation Model on Aesthetic Harmony and Novelty.
 
 
-Generative models have revolutionized image creation, but evaluating their aesthetic quality remains challenging. This research introduces the AHNS framework to assess both harmony(aesthetics) and novelty(creatibity) in generated images, with a focus on X.AI's image gen model.
+Generative models have revolutionized image creation, but evaluating their aesthetic quality remains challenging. This research introduces the AHNS framework to assess both harmony(aesthetics) and novelty(creativity) in generated images, with a focus on X.AI's image gen model.
 
 The AHNS rewards outputs that are aesthetically cohesive and creatively distinct, penalizing those that lack artistic harmony or are overly similar to training data or prior outputs.
 
